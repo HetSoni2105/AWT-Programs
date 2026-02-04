@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Todo App</title>
+</head>
+
+<body>
+
+<h2>Todo App</h2>
+
+<input id="todo" placeholder="Enter todo">
+<button onclick="addTodo()">Add</button>
+
+<h3>Pending Todos</h3>
+<ul id="list"></ul>
+
+<h3>Completed Todos</h3>
+<ul id="completed"></ul>
+
+<script>
+
+function addTodo() {
+    fetch("/add_todo", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({
+            text: document.getElementById("todo").value
+        })
+    }).then(loadTodos);
+}
+
+function loadTodos() {
+    fetch("/todos")
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("list").innerHTML = "";
+
+        data.forEach(t => {
+            document.getElementById("list").innerHTML += `
+                <li>
+                ${t.text}
+                <button onclick="complete(${t.id})">✔</button>
+                <button onclick="del(${t.id})">X</button>
+                </li>`;
+        });
+    });
+
+    fetch("/completed")
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("completed").innerHTML = "";
+
+        data.forEach(t => {
+            document.getElementById("completed").innerHTML += `<li>${t.text}</li>`;
+        });
+    });
+}
+
+function del(id) {
+    fetch("/delete_todo/" + id, { method:"DELETE" })
+    .then(loadTodos);
+}
+
+function complete(id) {
+    fetch("/comp_todo/" + id, { method:"POST" })
+    .then(loadTodos);
+}
+
+loadTodos();
+
+</script>
+
+</body>
+</html>
